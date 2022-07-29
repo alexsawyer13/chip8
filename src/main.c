@@ -60,6 +60,7 @@ void clear_pixel(int width, int height);
 
 void print_memory(int offset, int count);
 
+void print_stack(int offset, int count);
 void push_stack(u8 byte);
 u8 pop_stack();
 
@@ -74,7 +75,7 @@ int main(int argc, char *argv[])
     const char *path = argv[1];
 
     // Init CPU
-    state.sp = state.stack + STACK_SIZE - 1; // Stack grows down, set stack pointer to the end of the stack
+    state.sp = state.stack; // Set stack pointer to the beginning of the stack
     state.cpu.pc = 0x200; // Program should be loaded in at 0x200 since OG hardware stored emulator from 0x000 to 0x1FF
 
     // Load rom into memory at location 0x200
@@ -105,22 +106,6 @@ int main(int argc, char *argv[])
     SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &sdl_state.window, &sdl_state.renderer);
     SDL_RenderSetScale(sdl_state.renderer, (float)DISPLAY_SCALE, (float)DISPLAY_SCALE);
     set_pixel(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2);
-
-    // Testing
-    printf("Stack: %zu\nSp: %zu\n", (void*)state.stack, (void*)state.sp);
-
-    push_stack(200);
-    push_stack(37);
-    push_stack(21);
-    push_stack(3);
-
-    char val[4];
-    val[0] = pop_stack();
-    val[1] = pop_stack();
-    val[2] = pop_stack();
-    val[3] = pop_stack();
-
-    printf("%" PRIu8 "", val[0], val[1], val[2], val[3]);
 
     // Start emulation
     u8 loop = 1;
@@ -194,25 +179,33 @@ void print_memory(int offset, int count)
     }
 }
 
+void print_stack(int offset, int count)
+{
+    printf("Current stack pointer is at offset %zu\n", (size_t)(state.sp-state.stack));
+    for (int i = offset; i < offset + count; i++)
+    {
+        printf("%d: %" PRIu32 "\n", i, state.stack[i]);
+    }
+}
+
 void push_stack(u8 byte)
 {
-    if (state.sp < state.stack)
+    if (state.sp > state.stack + STACK_SIZE - 1)
     {
         printf("Trying to push to a full stack, uh oh!\n");
         return;
     }
     *state.sp = byte;
-    state.sp--;
+    state.sp++;
 }
 
 u8 pop_stack()
 {
-    if (state.sp == state.stack + STACK_SIZE - 1)
+    if (state.sp <= state.stack)
     {
         printf("Trying to pop from an empty stack, uh oh!\n");
         return 0;
     }
-    u8 val = *state.sp;
-    state.sp++;
-    return val;
+    state.sp--;
+    return *state.sp;
 }

@@ -3,6 +3,26 @@
         "sdl.h": "c",
         "sdl_main.h": "c",
         "iosfwd": "c",
-        "xlocbuf": "c"
+        "xlocbuf": "c",
+        "*.rh": "c",
+        "charconv": "c",
+        "chrono": "c",
+        "format": "c",
+        "forward_list": "c",
+        "iomanip": "c",
+        "ios": "c",
+        "istream": "c",
+        "list": "c",
+        "optional": "c",
+        "ostream": "c",
+        "shared_mutex": "c",
+        "sstream": "c",
+        "stop_token": "c",
+        "string": "c",
+        "thread": "c",
+        "xhash": "c",
+        "xiosbase": "c",
+        "xlocale": "c",
+        "xstring": "c"
     }
 }
