@@ -29,6 +29,7 @@
         "type_traits": "c",
         "vector": "c",
         "xtree": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "chip8.h": "c"
     }
 }

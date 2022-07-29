@@ -4,7 +4,15 @@ project(chip8)
 
 add_subdirectory(deps/SDL)
 
-add_executable(chip8 src/main.c)
+add_executable(chip8
+    src/main.c
+    src/chip8.h
+    src/chip8.c
+    src/instructions.h
+    src/instructions.c
+    src/graphics.h
+    src/graphics.c
+)
 
 target_include_directories(chip8
     PRIVATE out/deps/SDL/include
