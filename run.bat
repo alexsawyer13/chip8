@@ -1,3 +1,1 @@
-cd "out/RelWithDebInfo"
-call chip8.exe
-cd ../../
+"out/RelWithDebInfo/chip8.exe" %*
