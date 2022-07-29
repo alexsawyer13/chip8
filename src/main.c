@@ -60,15 +60,33 @@ void print_memory(int offset, int count);
 
 int main(int argc, char *argv[])
 {
-    for (int i = 0; i < argc; i++)
+    // Load rom into memory at location 0x200
+    printf("Loading rom: %s", argv[1]);
+
+    FILE *file = fopen(argv[1], "rb");
+    
+    fseek(file, 0, SEEK_END);
+    int size = (int)ftell(file);
+    fseek(file, 0, SEEK_SET);
+    
+    if (size - 512 > MEMORY_SIZE)
     {
-        printf("%s\n", argv[i]);
+        printf("Rom size is %d bytes which is too large to fit in memory\n", size);
+        return 1;
     }
 
-    init_sdl();
+    printf("Rom size is %d bytes, reading into memory", size);
 
+    fread(&state.memory[0x200], 1, size, file);
+    fclose(file);
+
+    print_memory(0x1FF, size + 2);
+
+    // Init SDL
+    init_sdl();
     set_pixel(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2);
 
+    // Start emulation
     u8 loop = 1;
     while (loop)
     {
