@@ -17,6 +17,7 @@
 #define WINDOW_HEIGHT (DISPLAY_HEIGHT * DISPLAY_SCALE)
 
 #define MEMORY_SIZE 4096
+#define STACK_SIZE 1024
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -40,16 +41,17 @@ struct cpu
 
 struct state
 {
-    struct cpu;
+    struct cpu cpu;
 
     u8 memory[MEMORY_SIZE];
     u8 screen[DISPLAY_SIZE];
+
+    u8 stack[STACK_SIZE];
+    u8 *sp;
 };
 
 static struct sdl_state sdl_state;
 static struct state state;
-
-void init_sdl();
 
 void print_screen();
 void render_screen();
@@ -58,12 +60,27 @@ void clear_pixel(int width, int height);
 
 void print_memory(int offset, int count);
 
+void push_stack(u8 byte);
+u8 pop_stack();
+
 int main(int argc, char *argv[])
 {
-    // Load rom into memory at location 0x200
-    printf("Loading rom: %s", argv[1]);
+    // Parse command line args
+    if (argc != 2)
+    {
+        printf("Usage: chip8 <filename>\n");
+        return 0;
+    }
+    const char *path = argv[1];
 
-    FILE *file = fopen(argv[1], "rb");
+    // Init CPU
+    state.sp = state.stack + STACK_SIZE - 1; // Stack grows down, set stack pointer to the end of the stack
+    state.cpu.pc = 0x200; // Program should be loaded in at 0x200 since OG hardware stored emulator from 0x000 to 0x1FF
+
+    // Load rom into memory at location 0x200
+    printf("Loading rom: \"%s\"\n", path);
+
+    FILE *file = fopen(path, "rb");
     
     fseek(file, 0, SEEK_END);
     int size = (int)ftell(file);
@@ -75,16 +92,35 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("Rom size is %d bytes, reading into memory", size);
+    printf("Rom size is %d bytes, reading into memory\n", size);
 
     fread(&state.memory[0x200], 1, size, file);
     fclose(file);
 
-    print_memory(0x1FF, size + 2);
+    // TODO: SETUP FONT
 
     // Init SDL
-    init_sdl();
+    SDL_SetMainReady();
+    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &sdl_state.window, &sdl_state.renderer);
+    SDL_RenderSetScale(sdl_state.renderer, (float)DISPLAY_SCALE, (float)DISPLAY_SCALE);
     set_pixel(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2);
+
+    // Testing
+    printf("Stack: %zu\nSp: %zu\n", (void*)state.stack, (void*)state.sp);
+
+    push_stack(200);
+    push_stack(37);
+    push_stack(21);
+    push_stack(3);
+
+    char val[4];
+    val[0] = pop_stack();
+    val[1] = pop_stack();
+    val[2] = pop_stack();
+    val[3] = pop_stack();
+
+    printf("%" PRIu8 "", val[0], val[1], val[2], val[3]);
 
     // Start emulation
     u8 loop = 1;
@@ -107,14 +143,6 @@ int main(int argc, char *argv[])
 
     SDL_Quit();
     return 0;
-}
-
-void init_sdl(struct sdl_state *state)
-{
-    SDL_SetMainReady();
-    SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &sdl_state.window, &sdl_state.renderer);
-    SDL_RenderSetScale(sdl_state.renderer, (float)DISPLAY_SCALE, (float)DISPLAY_SCALE);
 }
 
 void print_screen()
@@ -162,6 +190,29 @@ void print_memory(int offset, int count)
 {
     for (int i = offset; i < offset + count; i++)
     {
-        printf("%#05x: %d\n", i, state.memory[i]);
+        printf("%#05x: %#04x\n", i, state.memory[i]);
     }
+}
+
+void push_stack(u8 byte)
+{
+    if (state.sp < state.stack)
+    {
+        printf("Trying to push to a full stack, uh oh!\n");
+        return;
+    }
+    *state.sp = byte;
+    state.sp--;
+}
+
+u8 pop_stack()
+{
+    if (state.sp == state.stack + STACK_SIZE - 1)
+    {
+        printf("Trying to pop from an empty stack, uh oh!\n");
+        return 0;
+    }
+    u8 val = *state.sp;
+    state.sp++;
+    return val;
 }
