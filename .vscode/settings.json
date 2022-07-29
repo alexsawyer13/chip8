@@ -23,6 +23,12 @@
         "xhash": "c",
         "xiosbase": "c",
         "xlocale": "c",
-        "xstring": "c"
+        "xstring": "c",
+        "array": "c",
+        "initializer_list": "c",
+        "type_traits": "c",
+        "vector": "c",
+        "xtree": "c",
+        "xutility": "c"
     }
 }
