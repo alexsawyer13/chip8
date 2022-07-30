@@ -2,13 +2,10 @@
 
 #include "platform.h"
 
-// #include <SDL.h>
-#include <SDL_scancode.h>
-
 #include <stdio.h>
 #include <string.h>
 
-int chip8_keys[] = {
+int chip8_keys[NUM_CHIP_KEYS] = {
     SDL_SCANCODE_X, // 0x0
     SDL_SCANCODE_1, // 0x1
     SDL_SCANCODE_2, // 0x2

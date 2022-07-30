@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#include <SDL_scancode.h>
+
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 32
 #define DISPLAY_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT)
@@ -13,6 +15,10 @@
 
 #define MEMORY_SIZE 4096
 #define STACK_SIZE 1024
+
+#define NUM_CHIP_KEYS 16
+
+extern int chip8_keys[NUM_CHIP_KEYS];
 
 struct cpu
 {

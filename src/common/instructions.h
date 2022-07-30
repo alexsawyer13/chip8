@@ -54,6 +54,8 @@ void in_store_classic(struct chip8 *state, u8 xreg); // Using classic convention
 void in_load_classic(struct chip8 *state, u8 xreg); // Using classic convention of incrementing I
 void in_bin_to_dec(struct chip8 *state, u8 xreg);
 void in_random(struct chip8 *state, u8 xreg, u8 nn);
+void in_skip_vx_pressed(struct chip8 *state, u8 xreg);
+void in_skip_vx_npressed(struct chip8 *state, u8 xreg);
 
 
 #endif //_INSTRUCTIONS_H_

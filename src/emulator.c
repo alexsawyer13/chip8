@@ -192,10 +192,7 @@ int emulate(struct args *args)
     struct instruction instruction;
     while (loop)
     {
-        if (!pf_poll_events())
-        {
-            break;
-        }
+        if (!pf_poll_events()) break;
 
         if (state.await_input)
         {
@@ -208,32 +205,6 @@ int emulate(struct args *args)
                 state.await_input = 0;
             }
         }
-
-        // SDL_Event event;
-        // while (SDL_PollEvent(&event))
-        // {
-        //     switch(event.type)
-        //     {
-        //     case SDL_QUIT:
-        //         loop = 0;
-        //         break;
-        //     case SDL_KEYDOWN:
-        //         if (state.await_input)
-        //         {
-        //             SDL_Scancode scancode = event.key.keysym.scancode;
-        //             u8 key = scancode_to_key(scancode);
-        //             if (key != 0xFF)
-        //             {
-        //                 state.cpu.v[state.input_register] = key;
-        //                 if (args->debug)
-        //                     printf("Saving key %#03x into register v[%x]\n", key, state.input_register);
-        //                 state.await_input = 0;
-        //             }
-        //         }
-        //         break;
-        //     }
-        // }
-        // if (!loop) break;
 
         // Emulate
         if (!state.halt)

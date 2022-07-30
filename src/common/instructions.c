@@ -125,6 +125,20 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
     case 0xD:
         in_display(state, instruction->x, instruction->y, instruction->N);
         break;
+    case 0xE:
+        switch(instruction->NN)
+        {
+        case 0x9E:
+            in_skip_vx_pressed(state, instruction->x);
+            break;
+        case 0xA1:
+            in_skip_vx_npressed(state, instruction->x);
+            break;
+        default:
+            printf("Unknown instruction: %#06x\n", instruction->instruction);
+            return 0;
+        }
+        break;
     case 0xF:
         switch(instruction->NN)
         {
@@ -256,10 +270,24 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
         printf("Setting i to %#x\n", instruction->NNN);
         break;
     case 0xC:
-        printf("Setting v[%x] to rand & %#x\n", instruction->x, instruction->NN);
+        printf("Setting v[%x] to rand & %#x     (%#x)\n", instruction->x, instruction->NN, state->cpu.v[instruction->x]);
         break;
     case 0xD:
         printf("Displaying character %#x at position (%d, %d) of height %d at\n", state->cpu.i, (int)state->cpu.v[instruction->x], (int)state->cpu.v[instruction->y], instruction->N);
+        break;
+    case 0xE:
+        switch(instruction->NN)
+        {
+        case 0x9E:
+            printf("Skip if v[%x] (%#x) is pressed\n", instruction->x, state->cpu.v[instruction->x]);
+            break;
+        case 0xA1:
+            printf("Skip if v[%x] (%#x) isn't pressed\n", instruction->x, state->cpu.v[instruction->x]);
+            break;
+        default:
+            printf("Unknown instruction: %#06x\n", instruction->instruction);
+            return 0;
+        }
         break;
     case 0xF:
         switch(instruction->NN)
@@ -516,4 +544,20 @@ void in_bin_to_dec(struct chip8 *state, u8 xreg)
 void in_random(struct chip8 *state, u8 xreg, u8 nn)
 {
     state->cpu.v[xreg] = (pf_rand() % 256) & nn;
+}
+
+void in_skip_vx_pressed(struct chip8 *state, u8 xreg)
+{
+    if (pf_get_key_held(chip8_keys[state->cpu.v[xreg]]))
+    {
+        state->cpu.pc += 2;
+    }
+}
+
+void in_skip_vx_npressed(struct chip8 *state, u8 xreg)
+{
+    if (!pf_get_key_held(chip8_keys[state->cpu.v[xreg]]))
+    {
+        state->cpu.pc += 2;
+    }
 }
