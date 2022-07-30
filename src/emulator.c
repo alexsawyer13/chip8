@@ -192,7 +192,10 @@ int emulate(struct args *args)
     struct instruction instruction;
     while (loop)
     {
-        pf_poll_events();
+        if (!pf_poll_events())
+        {
+            break;
+        }
 
         if (state.await_input)
         {
