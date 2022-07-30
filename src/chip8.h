@@ -50,8 +50,9 @@ struct instruction
     u16 NNN;
 };
 
-// Init
+// General
 void init_chip8(struct chip8 *state);
+void print_cpu(struct chip8 *state);
 
 // Screen
 void print_screen(struct chip8 *state);

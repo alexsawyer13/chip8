@@ -8,6 +8,24 @@ void init_chip8(struct chip8 *state)
     state->cpu.pc = 0x200; // Program should be loaded in at 0x200 since OG hardware stored emulator from 0x000 to 0x1FF
 }
 
+void print_cpu(struct chip8 *state)
+{
+    printf("Program counter: %#06x\n", state->cpu.pc);
+    printf("I register: %#06x\n", state->cpu.i);
+    printf("Delay register: %#04x\n", state->cpu.delay);
+    printf("Sound register: %#04x\n", state->cpu.sound);
+
+    u8 *v = state->cpu.v;
+    printf(
+        "V0: %#04x    V1: %#04x    V2: %#04x    V3: %#04x\n"
+        "V4: %#04x    V5: %#04x    V6: %#04x    V7: %#04x\n"
+        "V8: %#04x    V9: %#04x    VA: %#04x    VB: %#04x\n"
+        "VC: %#04x    VD: %#04x    VE: %#04x    VF: %#04x\n",
+        v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8],
+        v[9], v[0xA], v[0xB], v[0xC], v[0xD], v[0xE], v[0xF]
+    );
+}
+
 void print_screen(struct chip8 *state)
 {
     for (int j = 0; j < DISPLAY_HEIGHT; j++)

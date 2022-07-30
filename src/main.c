@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("Rom size is %d bytes, reading into memory\n", rom_size);
+    printf("Rom size is %d bytes, reading into memory\n\n", rom_size);
 
     fread(&state.memory[0x200], 1, rom_size, rom_file);
     fclose(rom_file);
@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
     {
         printf("Font file size is %d bytes, taking first 80 bytes\n", font_size);
     }
+    printf("\n");
 
     fread(&state.memory[0x50], 1, 80, font_file);
     fclose(font_file);
@@ -110,6 +111,8 @@ int main(int argc, char *argv[])
             }
             render_screen(&state);
             state.cycles++;
+
+            // print_cpu(&state);
 
             // Hardcoded to stop after 100 cycles
             if (state.cycles > 100)

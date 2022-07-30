@@ -28,10 +28,17 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
     switch(instruction->i)
     {
     case 0x0:
-        if (instruction->NNN == 0x0E0)
+        if (instruction->NNN == 0x000)
+            in_halt(state);
+        else if (instruction->NNN == 0x0E0)
             in_clear_screen(state);
-        if (instruction->NNN == 0x0EE)
+        else if (instruction->NNN == 0x0EE)
             in_end_subroutine(state);
+        else
+        {
+            printf("Unknown instruction: %#06x\n", instruction->instruction);
+            return 0;
+        }
         break;
     case 0x1:
         in_jump(state, instruction->NNN);
@@ -52,7 +59,7 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
         in_display(state, instruction->x, instruction->y, instruction->N);
         break;
     default:
-        printf("Unknown instruction: %#06x", instruction->instruction);
+        printf("Unknown instruction: %#06x\n", instruction->instruction);
         return 0;
     }
     return 1;
@@ -64,10 +71,17 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
     switch(instruction->i)
     {
     case 0x0:
-        if (instruction->NNN == 0x0E0)
+        if (instruction->NNN == 0x000)
+            printf("Halting\n");
+        else if (instruction->NNN == 0x0E0)
             printf("Clearing screen\n");
-        if (instruction->NNN == 0x0EE)
+        else if (instruction->NNN == 0x0EE)
             printf("Returning from subroutine\n");
+        else
+        {
+            printf("No debug string set");
+            return 0;
+        }
         break;
     case 0x1:
         printf("Jumping to address %#x\n", instruction->NNN);
@@ -85,7 +99,7 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
         printf("Setting i to %#x\n", instruction->NNN);
         break;
     case 0xD:
-        printf("Displaying character at location %#x of height %d at position (%d, %d)\n", state->cpu.i, instruction->N, (int)state->cpu.v[instruction->x], (int)state->cpu.v[instruction->y]);
+        printf("Displaying character %#x at position (%d, %d) of height %d at\n", state->cpu.i, (int)state->cpu.v[instruction->x], (int)state->cpu.v[instruction->y], instruction->N);
         break;
     default:
         printf("No debug string set");
@@ -162,4 +176,9 @@ void in_end_subroutine(struct chip8 *state)
     u8 lower = pop_stack(state);
     u8 higher = pop_stack(state);
     state->cpu.pc = ((u16)higher << 8) + (u16)lower;
+}
+
+void in_halt(struct chip8 *state)
+{
+    state->halt = 1;
 }
