@@ -14,16 +14,71 @@
 
 static struct chip8 state;
 
+int emulate(const char *rom_path, const char *font_path, u8 debug);
+int assemble(const char *path);
+
 int main(int argc, char *argv[])
 {
     // Parse command line args
-    if (argc != 2)
+    if (argc > 1)
     {
-        printf("Usage: chip8 <filename>\n");
-        return 0;
+        if (strcmp(argv[1], "emulate") == 0)
+        {
+            if (argc == 3)
+            {
+                const char *rom_path = argv[2];
+                return emulate(rom_path, "fonts/default.font", 0);
+            }
+            else if (argc == 4)
+            {
+                const char *rom_path = argv[2];
+                const char *font_path = argv[3];
+                return emulate(rom_path, font_path, 0);
+            }
+            else
+            {
+                printf("Usage: chip8 emulate <rom> <font:optional>\n");
+                return 1;
+            }
+        }
+        else if (strcmp(argv[1], "emulate-debug") == 0)
+        {
+            if (argc == 3)
+            {
+                const char *rom_path = argv[2];
+                return emulate(rom_path, "fonts/default.font", 1);
+            }
+            else if (argc == 4)
+            {
+                const char *rom_path = argv[2];
+                const char *font_path = argv[3];
+                return emulate(rom_path, font_path, 1);
+            }
+            else
+            {
+                printf("Usage: chip8 emulate-debug <rom> <font:optional>\n");
+                return 1;
+            }
+        }
+        else if (strcmp(argv[1], "assemble") == 0)
+        {
+            if (argc == 3)
+            {
+                const char *assemble_path = argv[2];
+                return assemble(assemble_path);
+            }
+            else
+            {
+                printf("Usage: chip8 assemble <filename>\n");
+            }
+        }
     }
-    const char *rom_path = argv[1];
+    printf("Usage:\n\tEmulator: chip8 emulate <filename> <font:optional>\n\tEmulator with debug: chip8 emulate-debug <filename> <font:optional>\n\tAssembler: chip8 assemble <filename>");
+    return 1;
+}
 
+int emulate(const char *rom_path, const char *font_path, u8 debug)
+{
     // Init CPU
     init_chip8(&state);
 
@@ -50,7 +105,6 @@ int main(int argc, char *argv[])
     // print_memory(0x200, 160, 16);
 
     // Setup font
-    const char *font_path = "fonts/default.font";
     printf("Loading font: %s\n", font_path);
 
     FILE *font_file = fopen(font_path, "rb");
@@ -72,8 +126,6 @@ int main(int argc, char *argv[])
 
     fread(&state.memory[0x50], 1, 80, font_file);
     fclose(font_file);
-
-    // print_memory(0x50, 80, 5);
 
     // Init graphics
     init_graphics();
@@ -105,9 +157,12 @@ int main(int argc, char *argv[])
             {
                 state.halt = 1;
             }
-            if (!debug_instruction(&state, &instruction))
+            if (debug)
             {
-                state.halt = 1;
+                if (!debug_instruction(&state, &instruction))
+                {
+                    state.halt = 1;
+                }
             }
             render_screen(&state);
             state.cycles++;
@@ -120,13 +175,13 @@ int main(int argc, char *argv[])
                 state.halt = 1;
             }
         }
-
-
-        // if (instruction_bytes == 0x1228) return 0; // TEMP
-        // if (instruction_bytes == 0xFFFF) return 0; // TEMP
     }
 
-    // SDL_Delay(3000);
     shutdown_graphics();
     return 0;
+}
+
+int assemble(const char *path)
+{
+    printf("Cannot assemble \"%s\", feature not implemented yet\n", path);
 }
