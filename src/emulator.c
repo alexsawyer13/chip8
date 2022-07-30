@@ -201,6 +201,20 @@ int emulate(struct args *args)
             case SDL_QUIT:
                 loop = 0;
                 break;
+            case SDL_KEYDOWN:
+                if (state.await_input)
+                {
+                    SDL_Scancode scancode = event.key.keysym.scancode;
+                    u8 key = scancode_to_key(scancode);
+                    if (key != 0xFF)
+                    {
+                        state.cpu.v[state.input_register] = key;
+                        if (args->debug)
+                            printf("Saving key %x into register v[%x]\n", key, state.input_register);
+                        state.await_input = 0;
+                    }
+                }
+                break;
             }
         }
         if (!loop) break;
@@ -208,7 +222,9 @@ int emulate(struct args *args)
         // Emulate
         if (!state.halt)
         {
-            if (should_tick(&timer_instruction))
+            // TODO: Beep when sound timer > 0
+
+            if (should_tick(&timer_instruction) && !state.await_input)
             {
                 fetch_instruction(&state, &instruction_bytes);
                 decode_instruction(instruction_bytes, &instruction);

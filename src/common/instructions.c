@@ -92,6 +92,9 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
         case 0x1E:
             in_add_i(state, instruction->x);
             break;
+        case 0x0A:
+            in_get_key(state, instruction->x);
+            break;
         default:
             printf("Unknown instruction: %#06x\n", instruction->instruction);
             return 0;
@@ -178,13 +181,16 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
         case 0x1E:
             printf("Adding value of v[%x] to i register\n", instruction->x);
             break;
+        case 0x0A:
+            printf("Getting key input into register v[%x]\n", instruction->x);
+            break;
         default:
-            printf("No debug string set");
+            printf("No debug string set\n");
             return 0;
         }
         break;
     default:
-        printf("No debug string set");
+        printf("No debug string set\n");
         return 0;
     }
     return 1;
@@ -304,4 +310,10 @@ void in_skip_vx_neq_vy(struct chip8 *state, u8 xreg, u8 yreg)
     {
         state->cpu.pc += 2;
     }
+}
+
+void in_get_key(struct chip8* state, u8 xreg)
+{
+    state->await_input = 1;
+    state->input_register = xreg;
 }

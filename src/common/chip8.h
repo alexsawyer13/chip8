@@ -37,6 +37,8 @@ struct chip8
 
     u64 cycles;
     u8 halt;
+    u8 await_input;
+    u8 input_register;
 };
 
 struct instruction
@@ -59,6 +61,9 @@ void print_screen(struct chip8 *state);
 void set_pixel(struct chip8 *state, int width, int height);
 void clear_pixel(struct chip8 *state, int width, int height);
 u8 toggle_pixel(struct chip8 *state, int width, int height); // Returns the state of the pixel
+
+// Keys
+u8 scancode_to_key(u32 scancode);
 
 // Memory
 void print_memory(struct chip8 *state, int offset, int count, int vals_per_line);

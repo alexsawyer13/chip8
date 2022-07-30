@@ -1,5 +1,7 @@
 #include "chip8.h"
 
+#include <SDL.h> // SDL_SCANCODE
+
 #include <stdio.h>
 #include <string.h>
 
@@ -16,6 +18,8 @@ void init_chip8(struct chip8 *state)
     state->sp = state->stack; // Set stack pointer to the beginning of the stack
     state->cycles = 0;
     state->halt = 0;
+    state->await_input = 0;
+    state->input_register = 0;
 }
 
 void print_cpu(struct chip8 *state)
@@ -77,6 +81,33 @@ u8 toggle_pixel(struct chip8 *state, int width, int height)
         printf("Trying to toggle pixel (%d, %d) but it isn't set to 1 or 0", width, height);
         return (u8)0;
     }
+}
+
+u8 scancode_to_key(SDL_Scancode scancode)
+{
+    switch(scancode)
+    {
+        case SDL_SCANCODE_1: return 0x1;
+        case SDL_SCANCODE_2: return 0x2;
+        case SDL_SCANCODE_3: return 0x3;
+        case SDL_SCANCODE_4: return 0xC;
+
+        case SDL_SCANCODE_Q: return 0x4;
+        case SDL_SCANCODE_W: return 0x5;
+        case SDL_SCANCODE_E: return 0x6;
+        case SDL_SCANCODE_R: return 0xD;
+
+        case SDL_SCANCODE_A: return 0x7;
+        case SDL_SCANCODE_S: return 0x8;
+        case SDL_SCANCODE_D: return 0x9;
+        case SDL_SCANCODE_F: return 0xE;
+
+        case SDL_SCANCODE_Z: return 0xA;
+        case SDL_SCANCODE_X: return 0x0;
+        case SDL_SCANCODE_C: return 0xB;
+        case SDL_SCANCODE_V: return 0xF;
+    }
+    return (u8)-1;
 }
 
 void print_memory(struct chip8 *state, int offset, int count, int vals_per_line)

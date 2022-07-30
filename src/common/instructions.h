@@ -36,5 +36,6 @@ void in_skip_vx_eq_nn(struct chip8 *state, u8 xreg, u8 nn);
 void in_skip_vx_neq_nn(struct chip8 *state, u8 xreg, u8 nn);
 void in_skip_vx_eq_vy(struct chip8 *state, u8 xreg, u8 yreg);
 void in_skip_vx_neq_vy(struct chip8 *state, u8 xreg, u8 yreg);
+void in_get_key(struct chip8* state, u8 xreg);
 
 #endif //_INSTRUCTIONS_H_
