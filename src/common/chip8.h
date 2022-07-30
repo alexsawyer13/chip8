@@ -55,6 +55,7 @@ struct instruction
 // General
 void init_chip8(struct chip8 *state);
 void print_cpu(struct chip8 *state);
+u8 save_state(struct chip8 *state);
 
 // Screen
 void print_screen(struct chip8 *state);

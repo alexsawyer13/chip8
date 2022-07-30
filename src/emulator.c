@@ -3,7 +3,7 @@
 #include "common/types.h"
 #include "common/instructions.h"
 #include "common/chip8.h"
-#include "common/graphics.h"
+#include "common/platform.h"
 #include "common/timer.h"
 
 #define SDL_MAIN_HANDLED
@@ -119,11 +119,11 @@ int main(int argc, char *argv[])
 
 int emulate(struct args *args)
 {
+    // Init platform code
+    init_platform();
+
     // Init CPU
     init_chip8(&state);
-
-    // Init graphics
-    init_graphics();
 
     // Load rom into memory at location 0x200
     printf("Loading rom: \"%s\"\n", args->rom_path);
@@ -180,8 +180,13 @@ int emulate(struct args *args)
     fread(&state.memory[0x50], 1, 80, font_file);
     fclose(font_file);
 
+    // Temp
+    printf("Sp: %" PRIu64 "\n", (u64)state.sp);
+    printf("%d\n", (int)save_state(&state));
+    printf("\n");
+    return 1;
+
     // Timers
-    init_timers();
     struct timer timer_60hz;
     struct timer timer_instruction;
     create_timer_us(&timer_60hz, (u64)(1000000.0f/60.0f));
@@ -239,7 +244,7 @@ int emulate(struct args *args)
                         state.halt = 1;
                     }
                 }
-                render_screen(&state);
+                pf_render_screen(&state);
                 state.cycles++;
 
                 // Hardcoded to stop after 100 cycles
@@ -263,6 +268,6 @@ int emulate(struct args *args)
         }
     }
 
-    shutdown_graphics();
+    shutdown_platform();
     return 0;
 }

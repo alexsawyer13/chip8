@@ -1,5 +1,7 @@
 #include "chip8.h"
 
+#include "platform.h"
+
 #include <SDL.h> // SDL_SCANCODE
 
 #include <stdio.h>
@@ -38,6 +40,73 @@ void print_cpu(struct chip8 *state)
         v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8],
         v[9], v[0xA], v[0xB], v[0xC], v[0xD], v[0xE], v[0xF]
     );
+}
+
+u8 save_state(struct chip8 *state)
+{
+    FILE *file;
+    if (!pf_mkdir("states"))
+    {
+        printf("./states directory already exists\n");
+    }
+    if (fopen_s(&file, "states/state.ch8", "w") != 0)
+    {
+        printf("Failed to open states/state.ch8\n");
+        return 0;
+    }
+
+    // Registers
+    fputc((state->cpu.pc >> 8) & 0xFF, file); // PC higher
+    fputc(state->cpu.pc & 0xFF, file); // PC lower
+
+    fputc((state->cpu.i >> 8) & 0xFF, file); // i higher
+    fputc(state->cpu.i & 0xFF, file); // i lower
+
+    fputc(state->cpu.delay, file); // delay
+    fputc(state->cpu.sound, file); // sound
+
+    for (int i = 0; i < 16; i++)
+    {
+        fputc(state->cpu.v[i], file); // v[0x0] - v[0xF] in order
+    }
+
+    // Memory
+    for (int i = 0; i < MEMORY_SIZE; i++)
+    {
+        fputc(state->memory[i], file);
+    }
+
+    // Screen
+    for (int i = 0; i < DISPLAY_SIZE; i++)
+    {
+        fputc(state->screen[i], file);
+    }
+
+    // Stack
+    for (int i = 0; i < STACK_SIZE; i++)
+    {
+        fputc(state->stack[i], file);
+    }
+
+    size_t sp = (size_t)state->sp;
+    for (int byte = 0; byte < sizeof(size_t); byte++) // sp high-low
+    {
+        fputc((int)(sp >> (8 * byte)), file);
+    }
+
+    // Variables
+
+    for (int byte = 0; byte < 8; byte++) // Cycles high-low
+    {
+        fputc((int)(state->cycles >> (8 * byte)), file);
+    }
+
+    fputc((int)state->halt, file);
+    fputc((int)state->await_input, file);
+    fputc((int)state->input_register, file);
+
+    fclose(file);
+    return 1;
 }
 
 void print_screen(struct chip8 *state)

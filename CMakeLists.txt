@@ -12,8 +12,8 @@ add_executable(c8
     src/common/chip8.c
     src/common/instructions.h
     src/common/instructions.c
-    src/common/graphics.h
-    src/common/graphics.c
+    src/common/platform.h
+    src/common/platform.c
     src/common/timer.h
     src/common/timer.c
 )
@@ -37,8 +37,8 @@ add_executable(c8a
     src/common/chip8.c
     src/common/instructions.h
     src/common/instructions.c
-    src/common/graphics.h
-    src/common/graphics.c
+    src/common/platform.h
+    src/common/platform.c
 )
 
 target_include_directories(c8a
