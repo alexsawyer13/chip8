@@ -210,7 +210,7 @@ int emulate(struct args *args)
                     {
                         state.cpu.v[state.input_register] = key;
                         if (args->debug)
-                            printf("Saving key %x into register v[%x]\n", key, state.input_register);
+                            printf("Saving key %#03x into register v[%x]\n", key, state.input_register);
                         state.await_input = 0;
                     }
                 }
