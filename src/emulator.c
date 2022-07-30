@@ -1,9 +1,9 @@
 // https://tobiasvl.github.io/blog/write-a-chip-8-emulator/
 
-#include "types.h"
-#include "instructions.h"
-#include "chip8.h"
-#include "graphics.h"
+#include "common/types.h"
+#include "common/instructions.h"
+#include "common/chip8.h"
+#include "common/graphics.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>

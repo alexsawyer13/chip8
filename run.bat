@@ -1,1 +1,0 @@
-"out/RelWithDebInfo/chip8.exe" %*

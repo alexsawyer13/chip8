@@ -1,0 +1,1 @@
+"out/RelWithDebInfo/c8a.exe" %*
