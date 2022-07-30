@@ -1,11 +1,21 @@
 #include "chip8.h"
 
 #include <stdio.h>
+#include <string.h>
 
 void init_chip8(struct chip8 *state)
 {
-    state->sp = state->stack; // Set stack pointer to the beginning of the stack
     state->cpu.pc = 0x200; // Program should be loaded in at 0x200 since OG hardware stored emulator from 0x000 to 0x1FF
+    state->cpu.i = 0;
+    state->cpu.delay = 0;
+    state->cpu.sound = 0;
+    memset(state->cpu.v, 0, 16);
+    memset(state->memory, 0, MEMORY_SIZE);
+    memset(state->screen, 0, DISPLAY_SIZE);
+    memset(state->stack, 0, STACK_SIZE);
+    state->sp = state->stack; // Set stack pointer to the beginning of the stack
+    state->cycles = 0;
+    state->halt = 0;
 }
 
 void print_cpu(struct chip8 *state)
