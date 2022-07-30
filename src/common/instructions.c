@@ -69,6 +69,41 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
     case 0x7:
         in_add_vx(state, instruction->x, instruction->NN);
         break;
+    case 0x8:
+        switch(instruction->N)
+        {
+        case 0x0:
+            in_set_vx_vy(state, instruction->x, instruction->y);
+            break;
+        case 0x1:
+            in_or_vx_vy(state, instruction->x, instruction->y);
+            break;
+        case 0x2:
+            in_and_vx_vy(state, instruction->x, instruction->y);
+            break;
+        case 0x3:
+            in_xor_vx_vy(state, instruction->x, instruction->y);
+            break;
+        case 0x4:
+            in_add_vx_vy(state, instruction->x, instruction->y);
+            break;
+        case 0x5:
+            in_sub_vx_vy(state, instruction->x, instruction->y);
+            break;
+        case 0x6:
+            in_shift_right_modern(state, instruction->x, instruction->y);
+            break;
+        case 0x7:
+            in_sub_vy_vx(state, instruction->x, instruction->y);
+            break;
+        case 0xE:
+            in_shift_left_modern(state, instruction->x, instruction->y);
+            break;
+        default:
+            printf("Unknown instruction: %#06x\n", instruction->instruction);
+            return 0;
+        }
+        break;
     case 0x9:
         if (instruction->N == 0)
         {
@@ -89,6 +124,15 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
     case 0xF:
         switch(instruction->NN)
         {
+        case 0x33:
+            in_bin_to_dec(state, instruction->x);
+            break;
+        case 0x55:
+            in_store_modern(state, instruction->x);
+            break;
+        case 0x65:
+            in_load_modern(state, instruction->x);
+            break;
         case 0x1E:
             in_add_i(state, instruction->x);
             break;
@@ -132,7 +176,7 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
         printf("Starting subroutine at address %#x\n", instruction->NNN);
         break;
     case 0x3:
-        printf("Skipping instruction if v[%x] == %x", instruction->x, instruction->NN);
+        printf("Skipping instruction if v[%x] == %#x", instruction->x, instruction->NN);
         if (state->cpu.v[instruction->x] == instruction->NN)
             printf("    (skipping)");
         else
@@ -140,7 +184,7 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
         printf("\n");
         break;
     case 0x4:
-        printf("Skipping instruction if v[%x] != %x", instruction->x, instruction->NN);
+        printf("Skipping instruction if v[%x] != %#x", instruction->x, instruction->NN);
         if (state->cpu.v[instruction->x] != instruction->NN)
             printf("    (skipping)");
         else
@@ -156,10 +200,45 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
         printf("\n");
         break;
     case 0x6:
-        printf("Setting v%x to %#x\n", instruction->x, instruction->NN);
+        printf("Setting v[%x] to %#x\n", instruction->x, instruction->NN);
         break;
     case 0x7:
-        printf("Adding %#x to v%x\n", instruction->NN, instruction->x);
+        printf("Adding %#x to v[%x]\n", instruction->NN, instruction->x);
+        break;
+    case 0x8:
+        switch(instruction->N)
+        {
+        case 0x0:
+            printf("Setting v[%x] to v[%x]\n", instruction->x, instruction->y);
+            break;
+        case 0x1:
+            printf("Computing v[%x] |= v[%x]\n", instruction->x, instruction->y);
+            break;
+        case 0x2:
+            printf("Computing v[%x] &= v[%x]\n", instruction->x, instruction->y);
+            break;
+        case 0x3:
+            printf("Computing v[%x] ^= v[%x]\n", instruction->x, instruction->y);
+            break;
+        case 0x4:
+            printf("Computing v[%x] += v[%x]\n", instruction->x, instruction->y);
+            break;
+        case 0x5:
+            printf("Computing v[%x] -= v[%x]\n", instruction->x, instruction->y);
+            break;
+        case 0x6:
+            printf("Bitshifting right v[%x]\n", instruction->x);
+            break;
+        case 0x7:
+            printf("Computing v[%x] = v[%x] - v[%x]\n", instruction->x, instruction->y, instruction->x);
+            break;
+        case 0xE:
+            printf("Bitshifting left v[%x]\n", instruction->x);
+            break;
+        default:
+            printf("No debug string set\n");
+            return 0;
+        }
         break;
     case 0x9:
         printf("Skipping instruction if v[%x] != v[%x]", instruction->x, instruction->y);
@@ -178,6 +257,15 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
     case 0xF:
         switch(instruction->NN)
         {
+        case 0x33:
+            printf("Converting v[%x] to decimal at address %#x", instruction->x, state->cpu.i);
+            break;
+        case 0x55:
+            printf("Storing registers from v[0] to v[%x] to address %#x\n", instruction->x, state->cpu.i);
+            break;
+        case 0x65:
+            printf("Loading registers from v[0] to v[%x] from address %#x\n", instruction->x, state->cpu.i);
+            break;
         case 0x1E:
             printf("Adding value of v[%x] to i register\n", instruction->x);
             break;
@@ -198,31 +286,26 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
 
 void in_clear_screen(struct chip8 *state)
 {
-    // printf("Clear screen\n");
     memset(state->screen, 0, DISPLAY_SIZE);
 }
 
 void in_jump(struct chip8 *state, u16 address)
 {
-    // printf("Jumping to address %x\n", address);
     state->cpu.pc = address;
 }
 
 void in_set_vx(struct chip8 *state, u8 reg, u8 value)
 {
-    // printf("Setting v%x to %x\n", reg, value);
     state->cpu.v[reg] = value;
 }
 
 void in_add_vx(struct chip8 *state, u8 reg, u8 value)
 {
-    // printf("Adding %x to v%x\n", value, reg);
     state->cpu.v[reg] += value;
 }
 
 void in_set_i(struct chip8 *state, u16 address)
 {
-    // printf("Setting i to %x\n", address);
     state->cpu.i = address;
 }
 
@@ -316,4 +399,109 @@ void in_get_key(struct chip8* state, u8 xreg)
 {
     state->await_input = 1;
     state->input_register = xreg;
+}
+
+void in_set_vx_vy(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] = state->cpu.v[yreg];
+}
+
+void in_or_vx_vy(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] |= state->cpu.v[yreg];
+}
+
+void in_and_vx_vy(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] &= state->cpu.v[yreg];
+}
+
+void in_xor_vx_vy(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] ^= state->cpu.v[yreg];
+}
+
+void in_add_vx_vy(struct chip8* state, u8 xreg, u8 yreg)
+{
+    u32 sum = (u32)state->cpu.v[xreg] + (u32)state->cpu.v[yreg];
+    state->cpu.v[0xF] = (sum > 255); // Overflow
+    state->cpu.v[xreg] = (u8)sum;
+}
+
+void in_sub_vx_vy(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[0xF] = (state->cpu.v[xreg] >= state->cpu.v[yreg]);
+    state->cpu.v[xreg] -= state->cpu.v[yreg];
+}
+
+void in_sub_vy_vx(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[0xF] = (state->cpu.v[yreg] >= state->cpu.v[xreg]);
+    state->cpu.v[xreg] = state->cpu.v[yreg] - state->cpu.v[xreg];
+}
+
+void in_shift_left_modern(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] = state->cpu.v[xreg] << 1;
+    state->cpu.v[0xF] = (state->cpu.v[xreg] >> 7) & 0x1;
+}
+
+void in_shift_right_modern(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] = state->cpu.v[xreg] >> 1;
+    state->cpu.v[0xF] = state->cpu.v[xreg] & 0x1;
+}
+
+void in_shift_left_classic(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] = state->cpu.v[yreg];
+    in_shift_left_modern(state, xreg, yreg);
+}
+
+void in_shift_right_classic(struct chip8* state, u8 xreg, u8 yreg)
+{
+    state->cpu.v[xreg] = state->cpu.v[yreg];
+    in_shift_right_modern(state, xreg, yreg);
+}
+
+void in_store_modern(struct chip8 *state, u8 xreg)
+{
+    for (int reg = 0; reg <= xreg; reg++)
+    {
+        state->memory[state->cpu.i + reg] = state->cpu.v[reg];
+    }
+}
+
+void in_load_modern(struct chip8 *state, u8 xreg)
+{
+    for (int reg = 0; reg <= xreg; reg++)
+    {
+        state->cpu.v[reg] = state->memory[state->cpu.i + reg];
+    }
+}
+
+void in_store_classic(struct chip8 *state, u8 xreg)
+{
+    in_store_modern(state, xreg);
+    state->cpu.i += xreg;
+}
+
+void in_load_classic(struct chip8 *state, u8 xreg)
+{
+    in_load_modern(state, xreg);
+    state->cpu.i += xreg;
+}
+
+void in_bin_to_dec(struct chip8 *state, u8 xreg)
+{
+    u8 vx = state->cpu.v[xreg];
+
+    u8 a, b, c;
+    a = vx / 100;
+    b = (vx%100) / 10;
+    c = (vx%10);
+    
+    state->memory[state->cpu.i    ] = a;
+    state->memory[state->cpu.i + 1] = b;
+    state->memory[state->cpu.i + 2] = c;
 }

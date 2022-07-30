@@ -37,5 +37,22 @@ void in_skip_vx_neq_nn(struct chip8 *state, u8 xreg, u8 nn);
 void in_skip_vx_eq_vy(struct chip8 *state, u8 xreg, u8 yreg);
 void in_skip_vx_neq_vy(struct chip8 *state, u8 xreg, u8 yreg);
 void in_get_key(struct chip8* state, u8 xreg);
+void in_set_vx_vy(struct chip8* state, u8 xreg, u8 yreg);
+void in_or_vx_vy(struct chip8* state, u8 xreg, u8 yreg);
+void in_and_vx_vy(struct chip8* state, u8 xreg, u8 yreg);
+void in_xor_vx_vy(struct chip8* state, u8 xreg, u8 yreg);
+void in_add_vx_vy(struct chip8* state, u8 xreg, u8 yreg);
+void in_sub_vx_vy(struct chip8* state, u8 xreg, u8 yreg);
+void in_sub_vy_vx(struct chip8* state, u8 xreg, u8 yreg);
+void in_shift_left_modern(struct chip8* state, u8 xreg, u8 yreg); // Using modern convention of ignoring vy
+void in_shift_right_modern(struct chip8* state, u8 xreg, u8 yreg); // Using modern convention of ignoring vy
+void in_shift_left_classic(struct chip8* state, u8 xreg, u8 yreg); // Using classic convention of copying vy into vx
+void in_shift_right_classic(struct chip8* state, u8 xreg, u8 yreg); // Using classic convention of copying vy into vx
+void in_store_modern(struct chip8 *state, u8 xreg); // Using modern convention of fixing I
+void in_load_modern(struct chip8 *state, u8 xreg); // Using modern convention of fixing I
+void in_store_classic(struct chip8 *state, u8 xreg); // Using classic convention of incrementing I
+void in_load_classic(struct chip8 *state, u8 xreg); // Using classic convention of incrementing I
+void in_bin_to_dec(struct chip8 *state, u8 xreg);
+
 
 #endif //_INSTRUCTIONS_H_

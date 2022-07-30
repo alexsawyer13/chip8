@@ -180,12 +180,6 @@ int emulate(struct args *args)
     fread(&state.memory[0x50], 1, 80, font_file);
     fclose(font_file);
 
-    // Temp
-    printf("Sp: %" PRIu64 "\n", (u64)state.sp);
-    printf("%d\n", (int)save_state(&state));
-    printf("\n");
-    return 1;
-
     // Timers
     struct timer timer_60hz;
     struct timer timer_instruction;
@@ -241,7 +235,7 @@ int emulate(struct args *args)
                 {
                     if (!debug_instruction(&state, &instruction))
                     {
-                        state.halt = 1;
+                        // state.halt = 1;
                     }
                 }
                 pf_render_screen(&state);
