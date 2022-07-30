@@ -1,6 +1,7 @@
 #include "instructions.h"
 
 #include "chip8.h"
+#include "platform.h"
 
 #include <stdio.h>
 
@@ -117,6 +118,9 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
         break;
     case 0xA:
         in_set_i(state, instruction->NNN);
+        break;
+    case 0xC:
+        in_random(state, instruction->x, instruction->NN);
         break;
     case 0xD:
         in_display(state, instruction->x, instruction->y, instruction->N);
@@ -250,6 +254,9 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
         break;
     case 0xA:
         printf("Setting i to %#x\n", instruction->NNN);
+        break;
+    case 0xC:
+        printf("Setting v[%x] to rand & %#x\n", instruction->x, instruction->NN);
         break;
     case 0xD:
         printf("Displaying character %#x at position (%d, %d) of height %d at\n", state->cpu.i, (int)state->cpu.v[instruction->x], (int)state->cpu.v[instruction->y], instruction->N);
@@ -500,8 +507,13 @@ void in_bin_to_dec(struct chip8 *state, u8 xreg)
     a = vx / 100;
     b = (vx%100) / 10;
     c = (vx%10);
-    
+
     state->memory[state->cpu.i    ] = a;
     state->memory[state->cpu.i + 1] = b;
     state->memory[state->cpu.i + 2] = c;
+}
+
+void in_random(struct chip8 *state, u8 xreg, u8 nn)
+{
+    state->cpu.v[xreg] = (pf_rand() % 256) & nn;
 }

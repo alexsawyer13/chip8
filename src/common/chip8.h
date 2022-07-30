@@ -64,7 +64,7 @@ void clear_pixel(struct chip8 *state, int width, int height);
 u8 toggle_pixel(struct chip8 *state, int width, int height); // Returns the state of the pixel
 
 // Keys
-u8 scancode_to_key(u32 scancode);
+u8 get_chip_key()
 
 // Memory
 void print_memory(struct chip8 *state, int offset, int count, int vals_per_line);

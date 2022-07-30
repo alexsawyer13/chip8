@@ -53,6 +53,7 @@ void in_load_modern(struct chip8 *state, u8 xreg); // Using modern convention of
 void in_store_classic(struct chip8 *state, u8 xreg); // Using classic convention of incrementing I
 void in_load_classic(struct chip8 *state, u8 xreg); // Using classic convention of incrementing I
 void in_bin_to_dec(struct chip8 *state, u8 xreg);
+void in_random(struct chip8 *state, u8 xreg, u8 nn);
 
 
 #endif //_INSTRUCTIONS_H_

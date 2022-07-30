@@ -192,31 +192,45 @@ int emulate(struct args *args)
     struct instruction instruction;
     while (loop)
     {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
+        pf_poll_events();
+
+        if (state.await_input)
         {
-            switch(event.type)
+            u8 key = get_chip_key();
+            if (key != 0xFF)
             {
-            case SDL_QUIT:
-                loop = 0;
-                break;
-            case SDL_KEYDOWN:
-                if (state.await_input)
-                {
-                    SDL_Scancode scancode = event.key.keysym.scancode;
-                    u8 key = scancode_to_key(scancode);
-                    if (key != 0xFF)
-                    {
-                        state.cpu.v[state.input_register] = key;
-                        if (args->debug)
-                            printf("Saving key %#03x into register v[%x]\n", key, state.input_register);
-                        state.await_input = 0;
-                    }
-                }
-                break;
+                state.cpu.v[state.input_register] = key;
+                if (args->debug)
+                    printf("Saving key %#03x into register v[%x]\n", key, state.input_register);
+                state.await_input = 0;
             }
         }
-        if (!loop) break;
+
+        // SDL_Event event;
+        // while (SDL_PollEvent(&event))
+        // {
+        //     switch(event.type)
+        //     {
+        //     case SDL_QUIT:
+        //         loop = 0;
+        //         break;
+        //     case SDL_KEYDOWN:
+        //         if (state.await_input)
+        //         {
+        //             SDL_Scancode scancode = event.key.keysym.scancode;
+        //             u8 key = scancode_to_key(scancode);
+        //             if (key != 0xFF)
+        //             {
+        //                 state.cpu.v[state.input_register] = key;
+        //                 if (args->debug)
+        //                     printf("Saving key %#03x into register v[%x]\n", key, state.input_register);
+        //                 state.await_input = 0;
+        //             }
+        //         }
+        //         break;
+        //     }
+        // }
+        // if (!loop) break;
 
         // Emulate
         if (!state.halt)
@@ -242,10 +256,10 @@ int emulate(struct args *args)
                 state.cycles++;
 
                 // Hardcoded to stop after 100 cycles
-                if (state.cycles > 1000)
-                {
-                    state.halt = 1;
-                }
+                // if (state.cycles > 1000)
+                // {
+                //     state.halt = 1;
+                // }
             }
 
             if (should_tick(&timer_60hz))

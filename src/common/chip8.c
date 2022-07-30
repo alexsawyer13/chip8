@@ -2,10 +2,30 @@
 
 #include "platform.h"
 
-#include <SDL.h> // SDL_SCANCODE
+// #include <SDL.h>
+#include <SDL_scancode.h>
 
 #include <stdio.h>
 #include <string.h>
+
+int chip8_keys[] = {
+    SDL_SCANCODE_X, // 0x0
+    SDL_SCANCODE_1, // 0x1
+    SDL_SCANCODE_2, // 0x2
+    SDL_SCANCODE_3, // 0x3
+    SDL_SCANCODE_Q, // 0x4
+    SDL_SCANCODE_W, // 0x5
+    SDL_SCANCODE_E, // 0x6
+    SDL_SCANCODE_A, // 0x7
+    SDL_SCANCODE_S, // 0x8
+    SDL_SCANCODE_D, // 0x9
+    SDL_SCANCODE_Z, // 0xA
+    SDL_SCANCODE_C, // 0xB
+    SDL_SCANCODE_4, // 0xC
+    SDL_SCANCODE_R, // 0xD
+    SDL_SCANCODE_F, // 0xE
+    SDL_SCANCODE_V, // 0xF
+};
 
 void init_chip8(struct chip8 *state)
 {
@@ -152,29 +172,11 @@ u8 toggle_pixel(struct chip8 *state, int width, int height)
     }
 }
 
-u8 scancode_to_key(SDL_Scancode scancode)
+u8 get_chip_key()
 {
-    switch(scancode)
+    for (u8 i = 0; i < 16; i++)
     {
-        case SDL_SCANCODE_1: return 0x1;
-        case SDL_SCANCODE_2: return 0x2;
-        case SDL_SCANCODE_3: return 0x3;
-        case SDL_SCANCODE_4: return 0xC;
-
-        case SDL_SCANCODE_Q: return 0x4;
-        case SDL_SCANCODE_W: return 0x5;
-        case SDL_SCANCODE_E: return 0x6;
-        case SDL_SCANCODE_R: return 0xD;
-
-        case SDL_SCANCODE_A: return 0x7;
-        case SDL_SCANCODE_S: return 0x8;
-        case SDL_SCANCODE_D: return 0x9;
-        case SDL_SCANCODE_F: return 0xE;
-
-        case SDL_SCANCODE_Z: return 0xA;
-        case SDL_SCANCODE_X: return 0x0;
-        case SDL_SCANCODE_C: return 0xB;
-        case SDL_SCANCODE_V: return 0xF;
+        if (pf_get_key_pressed(chip8_keys[i])) return i;
     }
     return (u8)-1;
 }
