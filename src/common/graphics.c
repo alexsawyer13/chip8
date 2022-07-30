@@ -17,6 +17,9 @@ void init_graphics()
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &sdl_state.window, &sdl_state.renderer);
     SDL_RenderSetScale(sdl_state.renderer, (float)DISPLAY_SCALE, (float)DISPLAY_SCALE);
+    SDL_SetRenderDrawColor(sdl_state.renderer, 0, 0, 0, 255);
+    SDL_RenderClear(sdl_state.renderer);
+    SDL_RenderPresent(sdl_state.renderer);
 }
 
 void shutdown_graphics()

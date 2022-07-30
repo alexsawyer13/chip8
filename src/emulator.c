@@ -122,6 +122,9 @@ int emulate(struct args *args)
     // Init CPU
     init_chip8(&state);
 
+    // Init graphics
+    init_graphics();
+
     // Load rom into memory at location 0x200
     printf("Loading rom: \"%s\"\n", args->rom_path);
 
@@ -176,9 +179,6 @@ int emulate(struct args *args)
 
     fread(&state.memory[0x50], 1, 80, font_file);
     fclose(font_file);
-
-    // Init graphics
-    init_graphics();
 
     // Timers
     init_timers();
