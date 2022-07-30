@@ -14,6 +14,7 @@ This isn't necessary to implement, so 0x0FFF is free for my halt!
 */
 
 struct chip8;
+struct instruction;
 
 void fetch_instruction(struct chip8 *state, u16 *instruction);
 void decode_instruction(u16 instruction_bytes, struct instruction *instruction);
@@ -30,5 +31,10 @@ void in_display(struct chip8 *state, u8 xreg, u8 yreg, u8 height);
 void in_start_subroutine(struct chip8 *state, u16 address);
 void in_end_subroutine(struct chip8 *state);
 void in_halt(struct chip8 *state);
+void in_add_i(struct chip8 *state, u8 xreg);
+void in_skip_vx_eq_nn(struct chip8 *state, u8 xreg, u8 nn);
+void in_skip_vx_neq_nn(struct chip8 *state, u8 xreg, u8 nn);
+void in_skip_vx_eq_vy(struct chip8 *state, u8 xreg, u8 yreg);
+void in_skip_vx_neq_vy(struct chip8 *state, u8 xreg, u8 yreg);
 
 #endif //_INSTRUCTIONS_H_

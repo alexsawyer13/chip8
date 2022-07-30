@@ -14,6 +14,8 @@ add_executable(c8
     src/common/instructions.c
     src/common/graphics.h
     src/common/graphics.c
+    src/common/timer.h
+    src/common/timer.c
 )
 
 target_include_directories(c8

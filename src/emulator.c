@@ -4,6 +4,7 @@
 #include "common/instructions.h"
 #include "common/chip8.h"
 #include "common/graphics.h"
+#include "common/timer.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -18,6 +19,7 @@ struct args
 {
     const char *rom_path;
     const char *font_path;
+    u32 tick_rate;
     u8 debug;
 };
 
@@ -60,6 +62,16 @@ int main(int argc, char *argv[])
                         return 1;
                     }
                     break;
+                case 't':
+                    if (args.tick_rate == 0)
+                    {
+                        args.tick_rate = atoi(str + 2);
+                    }
+                    else
+                    {
+                        printf("-t flag defined twice\n");
+                        return 1;
+                    }
                 default:
                     printf("Unknown flag: %c\n", flag);
                 }
@@ -90,13 +102,18 @@ int main(int argc, char *argv[])
             args.font_path = "fonts/default.font";
         }
 
-        printf("Rom path: %s\nFont path: %s\nDebug mode: %d\n", args.rom_path, args.font_path, (int)args.debug);
+        if (args.tick_rate == 0)
+        {
+            printf("No tick rate specified, choosing default\n");
+            args.tick_rate = 1000;
+        }
+
+        printf("Rom path: %s\nFont path: %s\nDebug mode: %d\nTick rate: %d\n", args.rom_path, args.font_path, (int)args.debug, (int)args.tick_rate);
         printf("\n");
-        // return 0;
         return emulate(&args);
     }
 
-    printf("Usage: chip8 <rom_path>\n\t-f\"<font_path>\"\n\t-d enable debugging\n");
+    printf("Usage: chip8 <rom_path>\n\t-f\"<font_path>\"\n\t-d enable debugging\n\t-t<tps> sets tick rate\n");
     return 1;
 }
 
@@ -108,7 +125,12 @@ int emulate(struct args *args)
     // Load rom into memory at location 0x200
     printf("Loading rom: \"%s\"\n", args->rom_path);
 
-    FILE *rom_file = fopen(args->rom_path, "rb");
+    FILE *rom_file;
+    if (fopen_s(&rom_file, args->rom_path, "rb") != 0)
+    {
+        printf("Failed to open rom file: %s\n", args->rom_path);
+        return 1;
+    }
     
     fseek(rom_file, 0, SEEK_END);
     int rom_size = (int)ftell(rom_file);
@@ -130,7 +152,12 @@ int emulate(struct args *args)
     // Setup font
     printf("Loading font: %s\n", args->font_path);
 
-    FILE *font_file = fopen(args->font_path, "rb");
+    FILE *font_file;
+    if (fopen_s(&font_file, args->font_path, "rb") != 0)
+    {
+        printf("Failed to open font file: %s\n", args->font_path);
+        return 1;
+    }
 
     fseek(font_file, 0, SEEK_END);
     int font_size = ftell(font_file);
@@ -153,6 +180,13 @@ int emulate(struct args *args)
     // Init graphics
     init_graphics();
 
+    // Timers
+    init_timers();
+    struct timer timer_60hz;
+    struct timer timer_instruction;
+    create_timer_us(&timer_60hz, (u64)(1000000.0f/60.0f));
+    create_timer_us(&timer_instruction, (u64)(1000000.0f/(float)args->tick_rate));
+
     // Start emulation
     u8 loop = 1;
     u16 instruction_bytes;
@@ -174,28 +208,41 @@ int emulate(struct args *args)
         // Emulate
         if (!state.halt)
         {
-            fetch_instruction(&state, &instruction_bytes);
-            decode_instruction(instruction_bytes, &instruction);
-            if (!execute_instruction(&state, &instruction))
+            if (should_tick(&timer_instruction))
             {
-                state.halt = 1;
-            }
-            if (args->debug)
-            {
-                if (!debug_instruction(&state, &instruction))
+                fetch_instruction(&state, &instruction_bytes);
+                decode_instruction(instruction_bytes, &instruction);
+                if (!execute_instruction(&state, &instruction))
+                {
+                    state.halt = 1;
+                }
+                if (args->debug)
+                {
+                    if (!debug_instruction(&state, &instruction))
+                    {
+                        state.halt = 1;
+                    }
+                }
+                render_screen(&state);
+                state.cycles++;
+
+                // Hardcoded to stop after 100 cycles
+                if (state.cycles > 1000)
                 {
                     state.halt = 1;
                 }
             }
-            render_screen(&state);
-            state.cycles++;
 
-            // print_cpu(&state);
-
-            // Hardcoded to stop after 100 cycles
-            if (state.cycles > 100)
+            if (should_tick(&timer_60hz))
             {
-                state.halt = 1;
+                if (state.cpu.delay > 0)
+                {
+                    state.cpu.delay--;
+                }
+                if (state.cpu.sound > 0)
+                {
+                    state.cpu.delay--;
+                }
             }
         }
     }

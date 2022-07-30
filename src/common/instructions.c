@@ -36,8 +36,8 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
             in_end_subroutine(state);
         else
         {
-            printf("Unknown instruction: %#06x\n", instruction->instruction);
-            return 0;
+            printf("Unknown host machine instruction: %#06x\n", instruction->instruction);
+            return 1; // These instructions are external machine instructions on host device, don't fail if it happens
         }
         break;
     case 0x1:
@@ -46,17 +46,56 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
     case 0x2:
         in_start_subroutine(state, instruction->NNN);
         break;
+    case 0x3:
+        in_skip_vx_eq_nn(state, instruction->x, instruction->NN);
+        break;
+    case 0x4:
+        in_skip_vx_neq_nn(state, instruction->x, instruction->NN);
+        break;
+    case 0x5:
+        if (instruction->N == 0)
+        {
+            in_skip_vx_eq_vy(state, instruction->x, instruction->y);
+        }
+        else
+        {
+            printf("Unknown instruction: %#06x\n", instruction->instruction);
+            return 0;   
+        }
+        break;
     case 0x6:
         in_set_vx(state, instruction->x, instruction->NN);
         break;
     case 0x7:
         in_add_vx(state, instruction->x, instruction->NN);
         break;
+    case 0x9:
+        if (instruction->N == 0)
+        {
+            in_skip_vx_neq_vy(state, instruction->x, instruction->y);
+        }
+        else
+        {
+            printf("Unknown instruction: %#06x\n", instruction->instruction);
+            return 0;   
+        }
+        break;
     case 0xA:
         in_set_i(state, instruction->NNN);
         break;
     case 0xD:
         in_display(state, instruction->x, instruction->y, instruction->N);
+        break;
+    case 0xF:
+        switch(instruction->NN)
+        {
+        case 0x1E:
+            in_add_i(state, instruction->x);
+            break;
+        default:
+            printf("Unknown instruction: %#06x\n", instruction->instruction);
+            return 0;
+        }
         break;
     default:
         printf("Unknown instruction: %#06x\n", instruction->instruction);
@@ -67,7 +106,7 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
 
 u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
 {
-    printf("Instruction %#06x: ", instruction->instruction);
+    printf("%#06x %#06x: ", state->cpu.pc, instruction->instruction);
     switch(instruction->i)
     {
     case 0x0:
@@ -79,8 +118,8 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
             printf("Returning from subroutine\n");
         else
         {
-            printf("No debug string set");
-            return 0;
+            printf("Host machine instruction, not implemented\n"); 
+            return 1; // These instructions are external machine instructions on host device, don't fail if it happens
         }
         break;
     case 0x1:
@@ -89,17 +128,60 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
     case 0x2:
         printf("Starting subroutine at address %#x\n", instruction->NNN);
         break;
+    case 0x3:
+        printf("Skipping instruction if v[%x] == %x", instruction->x, instruction->NN);
+        if (state->cpu.v[instruction->x] == instruction->NN)
+            printf("    (skipping)");
+        else
+            printf("    (not skipping)");
+        printf("\n");
+        break;
+    case 0x4:
+        printf("Skipping instruction if v[%x] != %x", instruction->x, instruction->NN);
+        if (state->cpu.v[instruction->x] != instruction->NN)
+            printf("    (skipping)");
+        else
+            printf("    (not skipping)");
+        printf("\n");
+        break;
+    case 0x5:
+        printf("Skipping instruction if v[%x] == v[%x]", instruction->x, instruction->y);
+        if (state->cpu.v[instruction->x] == state->cpu.v[instruction->y])
+            printf("    (skipping)");
+        else
+            printf("    (not skipping)");
+        printf("\n");
+        break;
     case 0x6:
         printf("Setting v%x to %#x\n", instruction->x, instruction->NN);
         break;
     case 0x7:
         printf("Adding %#x to v%x\n", instruction->NN, instruction->x);
         break;
+    case 0x9:
+        printf("Skipping instruction if v[%x] != v[%x]", instruction->x, instruction->y);
+        if (state->cpu.v[instruction->x] != state->cpu.v[instruction->y])
+            printf("    (skipping)");
+        else
+            printf("    (not skipping)");
+        printf("\n");
+        break;
     case 0xA:
         printf("Setting i to %#x\n", instruction->NNN);
         break;
     case 0xD:
         printf("Displaying character %#x at position (%d, %d) of height %d at\n", state->cpu.i, (int)state->cpu.v[instruction->x], (int)state->cpu.v[instruction->y], instruction->N);
+        break;
+    case 0xF:
+        switch(instruction->NN)
+        {
+        case 0x1E:
+            printf("Adding value of v[%x] to i register\n", instruction->x);
+            break;
+        default:
+            printf("No debug string set");
+            return 0;
+        }
         break;
     default:
         printf("No debug string set");
@@ -181,4 +263,45 @@ void in_end_subroutine(struct chip8 *state)
 void in_halt(struct chip8 *state)
 {
     state->halt = 1;
+}
+
+void in_add_i(struct chip8 *state, u8 xreg)
+{
+    state->cpu.i += state->cpu.v[xreg];
+    if (state->cpu.i >= 0x1000)
+    {
+        state->cpu.v[0xF] = 1;
+    }
+}
+
+void in_skip_vx_eq_nn(struct chip8 *state, u8 xreg, u8 nn)
+{
+    if (state->cpu.v[xreg] == nn)
+    {
+        state->cpu.pc += 2;
+    }
+}
+
+void in_skip_vx_neq_nn(struct chip8 *state, u8 xreg, u8 nn)
+{
+    if (state->cpu.v[xreg] != nn)
+    {
+        state->cpu.pc += 2;
+    }
+}
+
+void in_skip_vx_eq_vy(struct chip8 *state, u8 xreg, u8 yreg)
+{
+    if (state->cpu.v[xreg] == state->cpu.v[yreg])
+    {
+        state->cpu.pc += 2;
+    }
+}
+
+void in_skip_vx_neq_vy(struct chip8 *state, u8 xreg, u8 yreg)
+{
+    if (state->cpu.v[xreg] != state->cpu.v[yreg])
+    {
+        state->cpu.pc += 2;
+    }
 }
