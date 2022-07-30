@@ -5,7 +5,7 @@ project(chip8)
 add_subdirectory(deps/SDL)
 
 add_executable(chip8
-    src/main.c
+    src/emulator.c
     src/chip8.h
     src/chip8.c
     src/instructions.h
