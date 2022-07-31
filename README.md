@@ -13,7 +13,8 @@ External roms can be found below
 
 Cmake is used to build the project
 
-The preferred way to build the project is running scripts/release.py from the chip8 directory
+The preferred way to build the project is running release.py from the chip8 directory
+- py scripts/release.py
 
 This will create a release directory. The chip8 directory inside contains all files necessary for the program to run
 
@@ -32,6 +33,8 @@ The executable requires SDL2.dll to be in the same directory as it to run
 Some other convenience scripts are placed in the scripts directory, read the scripts/README.md for information on how to use them
 
 ## Todo
+Figure out a better way to release application
+
 Assembler / disassembler
 
 Chip-48 extension

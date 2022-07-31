@@ -1,7 +1,7 @@
 import os
 import shutil
 
-os.system("configure")
+os.system("CALL scripts/configure.bat")
 os.system("cmake --build out --config Release")
 
 if os.path.isdir("release"):
