@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.7)
+# For IF generator expressions
+cmake_minimum_required(VERSION 3.8)
+
+# Configuration in all lower case (for including SDL config)
+set(config_lower string(TOLOWER $<CONFIG>))
 
 project(chip8)
 
@@ -20,11 +24,11 @@ add_executable(c8
 
 target_include_directories(c8
     PRIVATE out/deps/SDL/include
-    PRIVATE out/deps/SDL/include-config-relwithdebinfo
+    PRIVATE out/deps/SDL/include-config/$(config_lower)
 )
 
 target_link_directories(c8
-    PRIVATE out/deps/SDL/RelWithDebInfo
+    PRIVATE out/deps/SDL/$<CONFIG>
 )
 
 target_link_libraries(c8 PRIVATE SDL2)
@@ -43,11 +47,19 @@ add_executable(c8a
 
 target_include_directories(c8a
     PRIVATE out/deps/SDL/include
-    PRIVATE out/deps/SDL/include-config-relwithdebinfo
+    PRIVATE out/deps/SDL/include-config/$(config_lower)
 )
 
 target_link_directories(c8a
-    PRIVATE out/deps/SDL/RelWithDebInfo
+    PRIVATE out/deps/SDL/$<CONFIG>
 )
 
 target_link_libraries(c8a PRIVATE SDL2)
+
+# Copy SDL into release file
+
+add_custom_command(TARGET c8 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    $<TARGET_FILE_DIR:SDL2>/SDL2.dll
+    $<TARGET_FILE_DIR:c8>
+)
