@@ -2,3 +2,4 @@ out
 .vscode
 *.bak
 states
+.VsCodeCounter
