@@ -119,6 +119,9 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
     case 0xA:
         in_set_i(state, instruction->NNN);
         break;
+    case 0xB:
+        in_jump_offset_classic(state, instruction->x, instruction->NNN);
+        break;
     case 0xC:
         in_random(state, instruction->x, instruction->NN);
         break;
@@ -142,6 +145,18 @@ u8 execute_instruction(struct chip8 *state, struct instruction *instruction)
     case 0xF:
         switch(instruction->NN)
         {
+        case 0x07:
+            in_set_vx_delay(state, instruction->x);
+            break;
+        case 0x15:
+            in_set_delay_vx(state, instruction->x);
+            break;
+        case 0x18:
+            in_set_sound_vx(state, instruction->x);
+            break;
+        case 0x29:
+            in_font_character(state, instruction->x);
+            break;
         case 0x33:
             in_bin_to_dec(state, instruction->x);
             break;
@@ -269,6 +284,9 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
     case 0xA:
         printf("Setting i to %#x\n", instruction->NNN);
         break;
+    case 0xB:
+        printf("Jumping to %#x + v[0]", instruction->NNN);
+        break;
     case 0xC:
         printf("Setting v[%x] to rand & %#x     (%#x)\n", instruction->x, instruction->NN, state->cpu.v[instruction->x]);
         break;
@@ -292,8 +310,20 @@ u8 debug_instruction(struct chip8 *state, struct instruction *instruction)
     case 0xF:
         switch(instruction->NN)
         {
+        case 0x07:
+            printf("Setting v[%x] to delay register\n", instruction->x);
+            break;
+        case 0x15:
+            printf("Setting delay register to v[%x]\n", instruction->x);
+            break;
+        case 0x18:
+            printf("Setting sound register to v[%x]\n", instruction->x);
+            break;
+        case 0x29:
+            printf("Setting i to address of character %x\n", (u8)(state->cpu.v[instruction->x] & 0xF));
+            break;
         case 0x33:
-            printf("Converting v[%x] to decimal at address %#x", instruction->x, state->cpu.i);
+            printf("Converting v[%x] to decimal at address %#x\n", instruction->x, state->cpu.i);
             break;
         case 0x55:
             printf("Storing registers from v[0] to v[%x] to address %#x\n", instruction->x, state->cpu.i);
@@ -560,4 +590,35 @@ void in_skip_vx_npressed(struct chip8 *state, u8 xreg)
     {
         state->cpu.pc += 2;
     }
+}
+
+void in_font_character(struct chip8 *state, u8 xreg)
+{
+    u8 character = (u8)(state->cpu.v[xreg] & 0xF);
+    state->cpu.i = 0x50 + (5 * character);
+}
+
+void in_set_vx_delay(struct chip8 *state, u8 xreg)
+{
+    state->cpu.v[xreg] = state->cpu.delay;
+}
+
+void in_set_delay_vx(struct chip8 *state, u8 xreg)
+{
+    state->cpu.delay = state->cpu.v[xreg];
+}
+
+void in_set_sound_vx(struct chip8 *state, u8 xreg)
+{
+    state->cpu.sound = state->cpu.v[xreg];
+}
+
+void in_jump_offset_classic(struct chip8 *state, u8 xreg, u16 nnn)
+{
+    state->cpu.pc = nnn + state->cpu.v[0];
+}
+
+void in_jump_offset_broken(struct chip8 *state, u8 xreg, u16 nnn)
+{
+    state->cpu.pc = nnn + state->cpu.v[xreg];
 }

@@ -56,6 +56,11 @@ void in_bin_to_dec(struct chip8 *state, u8 xreg);
 void in_random(struct chip8 *state, u8 xreg, u8 nn);
 void in_skip_vx_pressed(struct chip8 *state, u8 xreg);
 void in_skip_vx_npressed(struct chip8 *state, u8 xreg);
-
+void in_font_character(struct chip8 *state, u8 xreg);
+void in_set_vx_delay(struct chip8 *state, u8 xreg);
+void in_set_delay_vx(struct chip8 *state, u8 xreg);
+void in_set_sound_vx(struct chip8 *state, u8 xreg);
+void in_jump_offset_classic(struct chip8 *state, u8 xreg, u16 nnn); // Uses classic convention of jumping to NNN + v0
+void in_jump_offset_broken(struct chip8 *state, u8 xreg, u16 nnn); // Uses chip-48 unintentional convention of jumping to XNN + vx
 
 #endif //_INSTRUCTIONS_H_

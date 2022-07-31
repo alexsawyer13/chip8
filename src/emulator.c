@@ -223,17 +223,11 @@ int emulate(struct args *args)
                 {
                     if (!debug_instruction(&state, &instruction))
                     {
-                        // state.halt = 1;
+                        state.halt = 1;
                     }
                 }
                 pf_render_screen(&state);
                 state.cycles++;
-
-                // Hardcoded to stop after 100 cycles
-                // if (state.cycles > 1000)
-                // {
-                //     state.halt = 1;
-                // }
             }
 
             if (should_tick(&timer_60hz))
@@ -244,7 +238,7 @@ int emulate(struct args *args)
                 }
                 if (state.cpu.sound > 0)
                 {
-                    state.cpu.delay--;
+                    state.cpu.sound--;
                 }
             }
         }
