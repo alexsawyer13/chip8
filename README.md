@@ -17,3 +17,13 @@ Assembler / disassembler
 Chip-48 extension
 
 Implement more platforms
+
+Allow save/load states
+
+Add some more debug features using keyboard
+- Speed up tickrate
+- Slow down tickrate
+- Pause emulation
+- Print debug text on screen using SDL
+- Maybe make screen bigger and contain chip-8 within a subsection of it to include this
+- Maybe use imgui
